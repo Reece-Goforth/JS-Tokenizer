@@ -37,7 +37,6 @@ class Parser {
             body: this.Literal(),
         };
     }
-    // BNF format of our code
     /**
      * Literal
      *      : NumericLiteral

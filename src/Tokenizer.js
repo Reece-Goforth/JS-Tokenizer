@@ -25,35 +25,32 @@ class Tokenizer {
 
         const string = this._string.slice(this._cursor);
 
-        // Numbers:
-        if (!Number.isNaN(Number(string[0]))) {
-            // Number token
-            let number = '';
-
-            while (!Number.isNaN(Number(string[this._cursor]))) {
-                // Builds the number from the string while consuming each character (curser++)
-                number += string[this._cursor++];
-            }
-
+        // Numbers: \d+ (a digit repeated 1 or more times)
+        let matched = /^\d+/.exec(string);
+        if (matched !== null) {
+            this._cursor += matched[0].length;
             return {
                 type: "NUMBER",
-                value: number,
+                value: matched[0],
             };
         }
 
         // String:
-        if (string[0] === '"') {
-            // Collect all characters of the string
-            let s = '';
-            do {
-                s += string[this._cursor++];
-            } while (string[this._cursor] !== '"' && !this.isEOF());
-            
-            s += this._cursor++; // skip "
-            
+        matched = /"[^"]*"/.exec(string);
+        if (matched !== null) {
+            this._cursor += matched[0].length;
             return {
                 type: "STRING",
-                value: s,
+                value: matched[0],
+            };
+        }
+
+        matched = /'[^']*'/.exec(string);
+        if (matched !== null) {
+            this._cursor += matched[0].length;
+            return {
+                type: "STRING",
+                value: matched[0],
             };
         }
 
