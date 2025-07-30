@@ -1,4 +1,26 @@
 /**
+ * Tokenizer spec
+ */
+const Spec = [
+    // WHITESPACE
+    [/^\s+/, null],
+
+    // COMMENTS
+    [/^\/\/.*/, null],
+    [/^\/\*[\s\S]*?\*\//], // Multi-line /* */
+
+    // SYMBOLS, DELIMETERS
+    [/^;/, ';'],
+
+    // NUMBERS
+    [/^\d+/, 'NUMBER'],
+
+    // STRINGS
+    [/"[^"]*"/, 'STRING'],
+    [/'[^']*'/, 'STRING'],
+];
+
+/**
  * Tokenizer Class
  * 
  * Lazily pulls a token from a stream
@@ -25,36 +47,35 @@ class Tokenizer {
 
         const string = this._string.slice(this._cursor);
 
-        // Numbers: \d+ (a digit repeated 1 or more times)
-        let matched = /^\d+/.exec(string);
-        if (matched !== null) {
-            this._cursor += matched[0].length;
+        for (const [regexp, tokenType] of Spec) {
+            const tokenValue = this._match(regexp, string);
+
+            if (tokenValue == null) {
+                continue;
+            }
+
+            if (tokenType == null) {
+                return this.getNextToken();
+            }
+
             return {
-                type: "NUMBER",
-                value: matched[0],
+                type: tokenType,
+                value: tokenValue,
             };
         }
+        throw new SyntaxError(`Unexpected token: "${string[0]}"`);
+    }
 
-        // String:
-        matched = /"[^"]*"/.exec(string);
-        if (matched !== null) {
-            this._cursor += matched[0].length;
-            return {
-                type: "STRING",
-                value: matched[0],
-            };
+    /**
+     * Matches a token for a regular expression
+     */
+    _match(regexp, string) {
+        const matched = regexp.exec(string);
+        if (matched == null) {
+            return null;
         }
-
-        matched = /'[^']*'/.exec(string);
-        if (matched !== null) {
-            this._cursor += matched[0].length;
-            return {
-                type: "STRING",
-                value: matched[0],
-            };
-        }
-
-        return null;
+        this._cursor += matched[0].length;
+        return matched[0];
     }
 }
 
